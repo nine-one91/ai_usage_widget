@@ -1,0 +1,5 @@
+{
+  "name": "usage-export",
+  "version": "0.1.0",
+  "description": "Claude Code가 받은 사용 한도(5시간/주간)를 AI 사용량 위젯이 읽을 파일로 남긴다"
+}

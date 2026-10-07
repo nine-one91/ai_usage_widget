@@ -1,0 +1,89 @@
+{
+  "name": "ai-usage-widget",
+  "version": "0.1.0",
+  "private": true,
+  "description": "화면 구석에 떠 있는 Claude / Codex 사용량 위젯",
+  "main": "out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "start": "electron-vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
+    "test": "vitest run",
+    "icon": "electron scripts/gen-app-icon.cjs",
+    "dist": "electron-vite build && electron-builder --mac"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^4.7.0",
+    "electron": "^44.6.0",
+    "electron-builder": "^26.15.3",
+    "electron-vite": "^3.1.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "typescript": "^5.9.3",
+    "vite": "^6.4.4",
+    "vitest": "^3.2.7"
+  },
+  "engines": {
+    "node": ">=22.12"
+  },
+  "author": "nineone",
+  "build": {
+    "appId": "dev.nineone.ai-usage-widget",
+    "productName": "AI Usage Widget",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "out/**",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "resources",
+        "to": ".",
+        "filter": [
+          "trayTemplate*.png"
+        ]
+      },
+      {
+        "from": "claude-mod/usage-export",
+        "to": "claude-mod/usage-export",
+        "filter": [
+          "**/*",
+          "!**/*.test.ts"
+        ]
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "build/icon.icns",
+      "identity": "-",
+      "extendInfo": {
+        "LSUIElement": true
+      },
+      "hardenedRuntime": false
+    },
+    "dmg": {
+      "title": "AI Usage Widget"
+    }
+  }
+}
