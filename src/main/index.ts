@@ -3,6 +3,7 @@ import { join } from 'node:path'
 import { overallLevel } from '../shared/level'
 import {
   SETTINGS_METHODS,
+  normalizeCharacterSize,
   type AccountConfig,
   type AppInfo,
   type Corner,
@@ -50,9 +51,11 @@ function pushState(): void {
   const state: WidgetState = {
     snapshots,
     level: overallLevel(snapshots),
+    busy: snapshots.some((s) => s.busy),
     corner: placed.corner,
     alwaysExpanded: settings.alwaysExpanded,
-    characterPack: settings.characterPack
+    characterPack: settings.characterPack,
+    characterSize: settings.characterSize
   }
   widget.webContents.send('widget:state', state)
 }
@@ -72,12 +75,12 @@ function pushSettingsInfo(): void {
 }
 
 function place(): void {
-  placed = placeWidget(widget, settings.position, settings.corner)
+  placed = placeWidget(widget, settings.position, settings.corner, settings.characterSize)
 }
 
 function applySettings(patch: Partial<Settings>): void {
   const accountsChanged = 'accounts' in patch
-  settings = { ...settings, ...patch }
+  settings = { ...settings, ...patch, characterSize: normalizeCharacterSize(patch.characterSize ?? settings.characterSize) }
   saveSettings(settings)
   place()
   tray.setContextMenu(buildMenu(settings, menuActions))
@@ -152,7 +155,7 @@ function registerIpc(): void {
     if (!drag) return
     const cursor = screen.getCursorScreenPoint()
     const prevCorner = placed.corner
-    placed = placeWidget(widget, { x: cursor.x + drag.x, y: cursor.y + drag.y }, settings.corner)
+    placed = placeWidget(widget, { x: cursor.x + drag.x, y: cursor.y + drag.y }, settings.corner, settings.characterSize)
     if (placed.corner !== prevCorner) pushState()
   })
   ipcMain.on('widget:drag-end', () => {

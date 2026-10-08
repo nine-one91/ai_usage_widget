@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto'
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { dirname, join } from 'node:path'
-import type { AccountConfig, Settings } from '../shared/types'
+import { DEFAULT_CHARACTER_SIZE, normalizeCharacterSize, type AccountConfig, type Settings } from '../shared/types'
 import { defaultClaudeLabel } from './providers/claudeMod'
 import { defaultCodexHome } from './providers/codexLocal'
 
@@ -15,6 +15,7 @@ const DEFAULTS: Settings = {
   position: null,
   alwaysExpanded: false,
   characterPack: 'default',
+  characterSize: DEFAULT_CHARACTER_SIZE,
   accounts: []
 }
 
@@ -36,13 +37,16 @@ export function loadSettings(): Settings {
   } catch {
     return { ...DEFAULTS }
   }
-  const settings = migrate(stored)
-  if (settings !== stored) saveSettings(settings)
+  const migrated = migrate(stored)
+  // 크기 설정이 생기기 전 파일에는 값이 없다 → 기본값 (DEFAULTS), 손으로 고친 값은 가까운 크기로
+  const settings = { ...migrated, characterSize: normalizeCharacterSize(migrated.characterSize) }
+  if (migrated !== stored || settings.characterSize !== stored.characterSize) saveSettings(settings)
   return settings
 }
 
 /** 예전 버전이 저장한 설정: 지금은 없는 source('cli', 'web')와 필드가 남아 있을 수 있다 */
-export type StoredSettings = Omit<Settings, 'accounts'> & {
+export type StoredSettings = Omit<Settings, 'accounts' | 'characterSize'> & {
+  characterSize?: number
   accounts: Array<Omit<AccountConfig, 'source'> & { source: string; orgId?: string }>
   /** v3까지의 새로고침 간격 설정 */
   refreshSec?: number
@@ -50,7 +54,7 @@ export type StoredSettings = Omit<Settings, 'accounts'> & {
 
 /** 이전 형식의 설정을 지금 형식으로 바꾼다. 바뀐 게 없으면 같은 객체를 돌려준다. */
 export function migrate(stored: StoredSettings): Settings {
-  if (stored.version >= SETTINGS_VERSION) return stored as Settings
+  if (stored.version >= SETTINGS_VERSION) return stored as Settings // characterSize는 loadSettings가 채운다
   // v1·v2 → v3: 토큰 API(cli)·웹 로그인(web) 방식 제거.
   // 설정 폴더가 있는 Claude 계정은 mod 기록 파일로 옮기고, 웹 로그인 계정은 지운다.
   const accounts: AccountConfig[] = []
@@ -60,7 +64,7 @@ export function migrate(stored: StoredSettings): Settings {
   }
   // v3 → v4: 새로고침 간격 설정 제거 (파일 감시로 바로 반영되고, 다시 읽기는 1분 고정)
   const { refreshSec: _refreshSec, ...rest } = stored
-  return { ...rest, version: SETTINGS_VERSION, accounts }
+  return { ...rest, characterSize: normalizeCharacterSize(rest.characterSize), version: SETTINGS_VERSION, accounts }
 }
 
 /** 없어진 웹 로그인 방식이 계정마다 남긴 브라우저 저장소(쿠키 등)를 지운다 */

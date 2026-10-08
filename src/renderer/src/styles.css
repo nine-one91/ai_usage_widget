@@ -160,6 +160,30 @@ body,
   color: var(--muted);
   text-transform: uppercase;
 }
+.busy-badge {
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(246, 168, 94, 0.2);
+  color: #d9803a;
+  white-space: nowrap;
+}
+.busy-badge::before {
+  content: '';
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin-right: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  vertical-align: 1px;
+  animation: blink 1s ease-in-out infinite;
+}
+@keyframes blink {
+  50% {
+    opacity: 0.25;
+  }
+}
 .source {
   margin-left: auto;
   color: var(--muted);
@@ -215,6 +239,7 @@ body,
   cursor: grab;
   touch-action: none;
   filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.25));
+  /* 크기는 설정(characterSize)에서 style로 준다 */
 }
 .character img,
 .character svg {
@@ -223,78 +248,470 @@ body,
   object-fit: contain;
 }
 
-.blob .body {
-  fill: #b0b0b5;
+/* ── 고양이: 작업 중이면 달리고 쉬면 잔다. 목걸이 색 = 사용량 단계 ── */
+.cat {
+  --fur: #f7a65b;
+  --fur-far: #e48c40;
+  --stripe: #d2702b;
+  --cream: #fff1dc;
+  --ol: #6b3f22;
+  --pink: #ffb3b3;
+  overflow: visible;
 }
-.blob .eyes,
-.blob .eye-x {
-  fill: #2b2b2e;
-  stroke: #2b2b2e;
+/* 사용량 정보가 없을 때는 회색 고양이 */
+.level-unknown .cat {
+  --fur: #c9c3bd;
+  --fur-far: #ada69f;
+  --stripe: #9c948c;
+  --cream: #f3f0ec;
+  --ol: #4f4842;
+}
+.cat .fur {
+  fill: var(--fur);
+  stroke: var(--ol);
   stroke-width: 2.4;
-  stroke-linecap: round;
+  stroke-linejoin: round;
 }
-.blob .mouth {
+.cat .cream {
+  fill: var(--cream);
+}
+.cat .shine {
   fill: none;
-  stroke: #2b2b2e;
-  stroke-width: 2.4;
+  stroke: #fff;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  opacity: 0.4;
+}
+.cat .stripe {
+  fill: none;
+  stroke: var(--stripe);
+  stroke-width: 3.2;
   stroke-linecap: round;
 }
-.blob .cheek {
-  fill: #ff8fa3;
+.cat .stripe.thin {
+  stroke-width: 2.4;
+}
+.cat .limb-ol,
+.cat .limb {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.cat .limb-ol {
+  stroke: var(--ol);
+  stroke-width: 10.5;
+}
+.cat .limb {
+  stroke: var(--fur);
+  stroke-width: 6.2;
+}
+.cat .limb.tip {
+  stroke: var(--stripe);
+}
+.cat .leg.far .limb {
+  stroke: var(--fur-far);
+}
+.cat .paw {
+  fill: var(--cream);
+  stroke: var(--ol);
+  stroke-width: 2;
+}
+.cat .ear-in {
+  fill: var(--pink);
+}
+.cat .eye-ol {
+  fill: #3a2416;
+}
+.cat .iris {
+  fill: #d99a2b;
+}
+.cat .pupil {
+  fill: #1e120a;
+}
+.cat .glint {
+  fill: #fff;
+}
+.cat .eye-closed,
+.cat .mouth-line,
+.cat .whisker {
+  fill: none;
+  stroke: var(--ol);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+.cat .mouth-line {
+  stroke-width: 1.4;
+}
+.cat .whisker {
+  stroke-width: 1;
   opacity: 0.55;
 }
-.blob .sweat {
+.cat .mouth {
+  fill: #b44a4f;
+  stroke: var(--ol);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+.cat .nose {
+  fill: #ff7f8f;
+  stroke: var(--ol);
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+.cat .cheek {
+  fill: #ff8fa3;
+  opacity: 0.45;
+}
+.cat .collar {
+  fill: none;
+  stroke: #b0b0b5;
+  stroke-width: 4.2;
+  stroke-linecap: round;
+}
+.cat .bell {
+  fill: #ffd04a;
+  stroke: var(--ol);
+  stroke-width: 1.3;
+}
+.cat .sweat {
   fill: #6ac8ff;
+  stroke: #3b8fc4;
+  stroke-width: 1;
 }
-
-.level-calm .blob .body {
-  fill: #7ee2b8;
+.cat .dust circle {
+  fill: #d6cfc5;
 }
-.level-normal .blob .body {
+.cat .speed path {
+  fill: none;
+  stroke: #cfc6ba;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.cat .zzz text {
+  font: 800 16px -apple-system, BlinkMacSystemFont, sans-serif;
   fill: #8cc8ff;
-}
-.level-warn .blob .body {
-  fill: #ffc861;
-}
-.level-limit .blob .body {
-  fill: #ff7a70;
-}
-.level-unknown .blob .cheek {
-  opacity: 0;
+  stroke: #4f86b8;
+  stroke-width: 0.8;
 }
 
-/* 상태별 애니메이션: 여유 → 천천히 둥실, 경고 → 흔들, 한도 → 덜덜 */
-.character.level-calm {
-  animation: float 3.2s ease-in-out infinite;
+.level-calm .cat .collar {
+  stroke: var(--ok);
 }
-.character.level-normal {
-  animation: float 1.8s ease-in-out infinite;
+.level-normal .cat .collar {
+  stroke: #4ea8ff;
 }
-.character.level-warn {
-  animation: wobble 0.9s ease-in-out infinite;
+.level-warn .cat .collar {
+  stroke: var(--mid);
 }
-.character.level-limit {
-  animation: shiver 0.25s linear infinite;
+.level-limit .cat .collar {
+  stroke: var(--high);
 }
-@keyframes float {
-  50% {
-    transform: translateY(-4px);
+
+/* 달리기(갤럽): 한 주기 = --run. 키프레임 % 는 모두 같은 주기 위의 시점이다
+ *   0%  뒷발 착지 (앞발은 앞으로 뻗는 중)
+ *  25%  뒷발 차기 + 앞발 착지 — 몸이 가장 길고 낮다
+ *  50%  앞발 차기 — 앞이 들린다
+ *  75%  네 발을 몸 아래 모으고 공중 — 몸이 가장 높고 웅크린다 */
+.cat .gallop,
+.cat .torso,
+.cat .head,
+.cat .tail,
+.cat .breathe,
+.cat .dust circle,
+.cat .speed path,
+.cat .zzz text {
+  transform-box: fill-box;
+}
+/* 다리 관절의 회전 중심은 Character.tsx가 viewBox 좌표로 준다 */
+.cat .thigh,
+.cat .shin {
+  transform-box: view-box;
+}
+.running {
+  --run: 0.5s;
+}
+.running * {
+  animation-timing-function: linear;
+}
+.running .gallop {
+  transform-origin: center;
+  animation: gallop var(--run) infinite;
+}
+.running .torso {
+  transform-origin: center;
+  animation: spine var(--run) infinite;
+}
+.running .head {
+  transform-origin: left bottom;
+  animation: head var(--run) infinite;
+}
+.running .hind-legs {
+  animation: hips var(--run) infinite;
+}
+.running .thigh.hind {
+  animation: hind-thigh var(--run) infinite;
+}
+.running .thigh.hind .shin {
+  animation: hind-shin var(--run) infinite;
+}
+.running .thigh.fore {
+  animation: fore-thigh var(--run) infinite;
+}
+.running .thigh.fore .shin {
+  animation: fore-shin var(--run) infinite;
+}
+/* 먼 쪽 다리는 주기의 1/8 늦게 */
+.running .thigh.far,
+.running .thigh.far .shin {
+  animation-delay: calc(var(--run) / -8 * 7);
+}
+.running .tail {
+  transform-origin: right bottom;
+  animation: tail var(--run) infinite;
+  animation-delay: calc(var(--run) / -10);
+}
+.running .dust circle {
+  opacity: 0;
+  animation: dust var(--run) infinite;
+  animation-timing-function: ease-out;
+}
+.running .dust circle:nth-child(2) {
+  animation-delay: calc(var(--run) / -3);
+}
+.running .dust circle:nth-child(3) {
+  animation-delay: calc(var(--run) / -1.5);
+}
+.running .speed path {
+  animation: speed calc(var(--run) * 1.2) infinite;
+}
+.running .speed path:nth-child(2) {
+  animation-delay: -0.17s;
+}
+.running .speed path:nth-child(3) {
+  animation-delay: -0.34s;
+}
+
+/* 몸통: 높이와 기울기 (+ 는 머리가 숙여짐) */
+@keyframes gallop {
+  0%,
+  100% {
+    transform: translateY(-1px) rotate(-2deg);
   }
-}
-@keyframes wobble {
   25% {
-    transform: rotate(-6deg);
+    transform: translateY(4px) rotate(3deg);
+  }
+  50% {
+    transform: translateY(-2px) rotate(-5deg);
   }
   75% {
+    transform: translateY(-13px) rotate(0deg);
+  }
+}
+/* 척추: 뻗을 때 길게, 모을 때 웅크림 */
+@keyframes spine {
+  0%,
+  100% {
+    transform: scale(1, 1);
+  }
+  25% {
+    transform: scale(1.07, 0.95);
+  }
+  75% {
+    transform: scale(0.93, 1.05);
+  }
+}
+/* 머리와 엉덩이는 척추 길이에 맞춰 앞뒤로 */
+@keyframes head {
+  0%,
+  100% {
+    transform: translateX(0) rotate(0deg);
+  }
+  25% {
+    transform: translateX(3px) rotate(-3deg);
+  }
+  50% {
+    transform: translateX(1px) rotate(3deg);
+  }
+  75% {
+    transform: translateX(-3px) rotate(2deg);
+  }
+}
+@keyframes hips {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-3px);
+  }
+  75% {
+    transform: translateX(3px);
+  }
+}
+/* 다리 각도: + 는 발이 뒤로, - 는 앞으로. 디딘 동안은 천천히 뒤로, 들면 무릎을 접고 빠르게 앞으로 */
+@keyframes hind-thigh {
+  0%,
+  100% {
+    transform: rotate(-35deg);
+  }
+  25% {
+    transform: rotate(18deg);
+  }
+  45% {
+    transform: rotate(48deg);
+  }
+  65% {
+    transform: rotate(12deg);
+  }
+  85% {
+    transform: rotate(-30deg);
+  }
+}
+@keyframes hind-shin {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
     transform: rotate(6deg);
   }
-}
-@keyframes shiver {
-  25% {
-    transform: translateX(-1.5px);
+  45% {
+    transform: rotate(28deg);
   }
-  75% {
-    transform: translateX(1.5px);
+  60% {
+    transform: rotate(-55deg);
+  }
+  85% {
+    transform: rotate(-20deg);
+  }
+}
+@keyframes fore-thigh {
+  0%,
+  100% {
+    transform: rotate(-48deg);
+  }
+  25% {
+    transform: rotate(-22deg);
+  }
+  50% {
+    transform: rotate(40deg);
+  }
+  65% {
+    transform: rotate(28deg);
+  }
+  85% {
+    transform: rotate(-22deg);
+  }
+}
+@keyframes fore-shin {
+  0%,
+  100% {
+    transform: rotate(-12deg);
+  }
+  25% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(12deg);
+  }
+  62% {
+    transform: rotate(85deg);
+  }
+  85% {
+    transform: rotate(40deg);
+  }
+}
+@keyframes tail {
+  0%,
+  100% {
+    transform: rotate(4deg);
+  }
+  25% {
+    transform: rotate(-10deg);
+  }
+  60% {
+    transform: rotate(14deg);
+  }
+}
+@keyframes dust {
+  0% {
+    opacity: 0.9;
+    transform: translate(0, 0) scale(0.6);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-18px, -8px) scale(1.5);
+  }
+}
+@keyframes speed {
+  0% {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+}
+
+/* 잠: 천천히 숨 쉬고, 꼬리 끝을 살랑이고, z가 떠오른다 */
+.sleeping .breathe {
+  transform-origin: center bottom;
+  animation: breathe 3.2s ease-in-out infinite;
+}
+.sleeping .tail {
+  transform-origin: left top;
+  animation: tail-twitch 3.2s ease-in-out infinite;
+}
+.sleeping .zzz text {
+  opacity: 0;
+  animation: zzz 3.2s ease-out infinite;
+}
+.sleeping .zzz text:nth-child(2) {
+  animation-delay: 1.6s;
+}
+@keyframes breathe {
+  50% {
+    transform: scale(1.02, 1.05);
+  }
+}
+@keyframes tail-twitch {
+  0%,
+  70%,
+  100% {
+    transform: rotate(0deg);
+  }
+  80% {
+    transform: rotate(-3deg);
+  }
+  90% {
+    transform: rotate(1.5deg);
+  }
+}
+@keyframes zzz {
+  0% {
+    opacity: 0;
+    transform: translate(0, 8px) scale(0.7);
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(8px, -12px) scale(1.1);
+  }
+}
+
+/* 사용자 팩에 busy 이미지가 없어 단계 이미지를 쓸 때는 통통 뛰어서 작업 중임을 보여준다 */
+.character.hop {
+  animation: hop 0.5s ease-in-out infinite;
+}
+@keyframes hop {
+  50% {
+    transform: translateY(-5px);
   }
 }
 
@@ -305,7 +722,8 @@ body,
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .character {
+  .character,
+  .character * {
     animation: none !important;
   }
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState, type DragEvent } from 'react'
 import { moveItem } from '../../../shared/reorder'
-import type { AccountConfig, AppInfo, Corner, UsageSnapshot } from '../../../shared/types'
+import { CHARACTER_SIZES, type AccountConfig, type AppInfo, type Corner, type UsageSnapshot } from '../../../shared/types'
 import './settings.css'
 
 const api = window.settingsApi
@@ -76,7 +76,7 @@ export function SettingsApp() {
       <section>
         <h2>캐릭터</h2>
         <div className="group">
-          <Row label="캐릭터" hint="폴더에 <상태>.gif / .png 등을 넣은 팩을 추가할 수 있어요">
+          <Row label="캐릭터" hint="폴더에 busy.gif(작업 중) / idle.gif(쉬는 중) 등을 넣은 팩을 추가할 수 있어요">
             <select value={settings.characterPack} onChange={(e) => void api.update({ characterPack: e.target.value })}>
               <option value="default">기본</option>
               {info.characterPacks.map((pack) => (
@@ -86,6 +86,18 @@ export function SettingsApp() {
               ))}
             </select>
             <button onClick={() => void api.openCharactersFolder()}>폴더 열기</button>
+          </Row>
+          <Row label="크기" hint="화면 구석에 떠 있는 캐릭터의 크기">
+            <select
+              value={settings.characterSize}
+              onChange={(e) => void api.update({ characterSize: Number(e.target.value) })}
+            >
+              {CHARACTER_SIZES.map(([size, label]) => (
+                <option key={size} value={size}>
+                  {label} ({size}px)
+                </option>
+              ))}
+            </select>
           </Row>
         </div>
       </section>

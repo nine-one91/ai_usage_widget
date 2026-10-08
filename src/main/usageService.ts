@@ -1,17 +1,23 @@
 import type { FSWatcher } from 'node:fs'
 import type { AccountConfig, UsageSnapshot } from '../shared/types'
-import { fetchClaudeModUsage, watchModExports } from './providers/claudeMod'
-import { fetchCodexLocalUsage, watchCodexSessions } from './providers/codexLocal'
-import { snapshot, type UsageFetcher } from './providers/types'
+import { fetchClaudeBusy, fetchClaudeModUsage, watchModExports } from './providers/claudeMod'
+import { fetchCodexBusy, fetchCodexLocalUsage, watchCodexSessions } from './providers/codexLocal'
+import { snapshot, type BusyChecker, type UsageFetcher } from './providers/types'
 
 const FETCHERS: Record<AccountConfig['source'], UsageFetcher> = {
   mod: fetchClaudeModUsage,
   local: fetchCodexLocalUsage
 }
 
+const BUSY_CHECKERS: Record<AccountConfig['source'], BusyChecker> = {
+  mod: fetchClaudeBusy,
+  local: fetchCodexBusy
+}
+
 /**
  * 기록 파일은 바뀌면 파일 감시로 바로 다시 읽는다. 이 간격은 그 밖의 경우용이다:
- * 파일이 그대로여도 리셋 시각이 지나면 0%로 바꿔야 하고, 감시가 변경을 놓칠 수도 있다.
+ * 파일이 그대로여도 리셋 시각이 지나면 0%로 바꿔야 하고, 강제 종료된 세션의 작업 중 표시도 거둬야 하고,
+ * 감시가 변경을 놓칠 수도 있다.
  */
 const REREAD_INTERVAL_MS = 60_000
 
@@ -36,11 +42,10 @@ export class UsageService {
         if (w) this.watchers.push(w)
       }
     }
-    // mod 파일은 한 폴더에 모이므로 감시도 하나로 충분하다
+    // mod 파일은 모든 계정이 같은 폴더를 쓰므로 감시도 한 번만
     const modAccounts = accounts.filter((a) => a.source === 'mod')
     if (modAccounts.length > 0) {
-      const w = watchModExports(() => modAccounts.forEach((a) => void this.refreshAccount(a)))
-      if (w) this.watchers.push(w)
+      this.watchers.push(...watchModExports(() => modAccounts.forEach((a) => void this.refreshAccount(a))))
     }
     this.emit()
     void this.refreshAll()
@@ -52,9 +57,12 @@ export class UsageService {
   }
 
   private async refreshAccount(account: AccountConfig): Promise<void> {
-    const next = await FETCHERS[account.source](account)
+    const [next, busy] = await Promise.all([
+      FETCHERS[account.source](account),
+      BUSY_CHECKERS[account.source](account).catch(() => false)
+    ])
     if (!this.accounts.some((a) => a.id === account.id)) return // 조회 중에 삭제됨
-    this.snapshots.set(account.id, next)
+    this.snapshots.set(account.id, { ...next, busy })
     this.emit()
   }
 

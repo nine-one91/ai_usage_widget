@@ -1,14 +1,13 @@
 import { BrowserWindow, screen } from 'electron'
 import { join } from 'node:path'
 import type { Corner, Point } from '../shared/types'
-import { WIDGET_HEIGHT, WIDGET_WIDTH, defaultPoint, widgetLayout } from './position'
+import { defaultPoint, widgetLayout, widgetSize } from './position'
 
-// 창은 펼친 카드 크기로 고정하고, 투명한 부분은 클릭이 아래 앱으로 통과하게 한다.
+// 창은 펼친 카드 + 캐릭터 크기로 고정하고, 투명한 부분은 클릭이 아래 앱으로 통과하게 한다.
 // 렌더러가 캐릭터/카드 위에 마우스가 올라왔을 때만 setInteractive(true)를 보낸다.
 export function createWidgetWindow(): BrowserWindow {
   const win = new BrowserWindow({
-    width: WIDGET_WIDTH,
-    height: WIDGET_HEIGHT,
+    ...widgetSize(),
     show: false,
     frame: false,
     transparent: true,
@@ -47,9 +46,14 @@ export function createWidgetWindow(): BrowserWindow {
  * 화면 밖이면 가장 가까운 모니터 안으로 당긴다 (모니터를 뺀 뒤 다시 실행한 경우 등).
  * 실제로 놓인 위치와, 카드가 펼쳐질 방향(구석)을 돌려준다.
  */
-export function placeWidget(win: BrowserWindow, point: Point | null, corner: Corner): { point: Point; corner: Corner } {
-  const target = point ?? defaultPoint(corner, screen.getPrimaryDisplay().workArea)
-  const layout = widgetLayout(target, screen.getDisplayNearestPoint(target).workArea)
+export function placeWidget(
+  win: BrowserWindow,
+  point: Point | null,
+  corner: Corner,
+  characterSize: number
+): { point: Point; corner: Corner } {
+  const target = point ?? defaultPoint(corner, screen.getPrimaryDisplay().workArea, characterSize)
+  const layout = widgetLayout(target, screen.getDisplayNearestPoint(target).workArea, characterSize)
   win.setBounds(layout.bounds)
   return { point: layout.point, corner: layout.corner }
 }

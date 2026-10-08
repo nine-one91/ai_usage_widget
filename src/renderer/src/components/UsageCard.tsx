@@ -35,6 +35,7 @@ function AccountRow({ snapshot: s, now }: { snapshot: UsageSnapshot; now: number
         <span className="dot" />
         <span className="label">{s.label}</span>
         {s.plan && <span className="plan">{s.plan}</span>}
+        {s.busy && <span className="busy-badge">작업 중</span>}
         <span className="source">{SOURCE_LABEL[s.source]}</span>
       </div>
       {s.status === 'loading' && <p className="message">불러오는 중…</p>}

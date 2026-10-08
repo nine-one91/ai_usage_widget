@@ -4,3 +4,8 @@ export function exportFileName(configDir: string): string {
   const base = configDir.replace(/[\\/]+$/, '').split(/[\\/]/).pop() ?? 'claude'
   return `${base.replace(/^\./, '') || 'claude'}.json`
 }
+
+/** 작업 상태 파일: ~/.ai-usage-widget/activity/claude-<세션 id>.json (세션마다 하나) */
+export function activityFileName(sessionId: string): string {
+  return `claude-${sessionId.replace(/[^\w-]/g, '_') || 'session'}.json`
+}

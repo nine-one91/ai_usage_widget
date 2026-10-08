@@ -41,6 +41,8 @@ export interface UsageSnapshot {
   message?: string
   /** 데이터 자체의 기준 시각 (local은 기록 시각, API는 조회 시각) */
   updatedAt: number | null
+  /** 이 계정으로 지금 작업 중(턴 진행 중)인 세션이 있다 */
+  busy?: boolean
 }
 
 export type Corner = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
@@ -62,15 +64,35 @@ export interface Settings {
   alwaysExpanded: boolean
   /** 'default' = 내장 캐릭터, 그 외 = userData/characters/<이름> 폴더 */
   characterPack: string
+  /** 캐릭터 한 변 크기 (px). CHARACTER_SIZES 중 하나 */
+  characterSize: number
   accounts: AccountConfig[]
 }
 
 export interface WidgetState {
   snapshots: UsageSnapshot[]
   level: Level
+  /** 계정 중 하나라도 작업 중이면 true — 캐릭터가 뛴다 */
+  busy: boolean
   corner: Corner
   alwaysExpanded: boolean
   characterPack: string
+  characterSize: number
+}
+
+/** 설정에서 고를 수 있는 캐릭터 크기 (px) */
+export const CHARACTER_SIZES: Array<[number, string]> = [
+  [56, '작게'],
+  [80, '보통'],
+  [112, '크게'],
+  [144, '아주 크게']
+]
+export const DEFAULT_CHARACTER_SIZE = 80
+
+/** 목록에 없는 값(손으로 고친 설정 등)은 가장 가까운 크기로 */
+export function normalizeCharacterSize(size: unknown): number {
+  if (typeof size !== 'number' || !Number.isFinite(size)) return DEFAULT_CHARACTER_SIZE
+  return CHARACTER_SIZES.map(([s]) => s).reduce((a, b) => (Math.abs(b - size) < Math.abs(a - size) ? b : a))
 }
 
 export interface WidgetApi {

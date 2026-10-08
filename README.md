@@ -41,7 +41,7 @@ npm run icon     # 앱 아이콘(build/icon.png, icon.icns) 다시 만들기
 
 ### usage-export mod 등록
 
-Claude Code의 mod(함수 hook 플러그인)가 `session.measure` 이벤트의 `rateLimits`를 파일로 남긴다. 터미널 Claude Code와 Claude Desktop의 Code 탭 모두에서 동작한다.
+Claude Code의 mod(함수 hook 플러그인)가 `session.measure` 이벤트의 `rateLimits`와, `turn.start`/`turn.complete`로 작업 상태를 파일로 남긴다. 터미널 Claude Code와 Claude Desktop의 Code 탭 모두에서 동작한다.
 각 Claude 설정 폴더의 `settings.json`에 추가한 뒤 Claude Code / Desktop을 새로 시작한다:
 
 ```json
@@ -55,8 +55,15 @@ claude plugin test claude-mod/usage-export
 
 ## 캐릭터
 
-사용률(모든 계정 중 최댓값)에 따라 상태가 바뀐다: `unknown` · `calm`(<50%) · `normal`(<80%) · `warn`(<100%) · `limit`.
-기본 캐릭터는 SVG + CSS 애니메이션. 직접 만든 팩은 `~/Library/Application Support/ai-usage-widget/characters/<팩 이름>/<상태>.(gif|webp|apng|png|svg)` 에 넣고 메뉴 → 캐릭터에서 고른다. 없는 상태는 기본 캐릭터로 대신 그린다.
+기본 캐릭터는 고양이 (SVG + CSS 애니메이션).
+
+- **작업 중** — 등록한 계정 중 하나라도 턴이 진행 중이면 달린다. 아니면 몸을 말고 잔다. 카드에는 작업 중인 계정에 "작업 중" 표시.
+  - Claude Code: usage-export mod가 세션마다 `~/.ai-usage-widget/activity/claude-<세션 id>.json`에 기록한다. 턴 동안 30초마다 다시 쓰고, 2분 넘게 끊기면 (강제 종료) 쉬는 것으로 본다.
+  - Codex: 최근 기록 파일의 마지막 턴 표시(`task_started` / `task_complete` / `turn_aborted`)와 `codex` 프로세스가 떠 있는지로 판단한다.
+- **사용률** (모든 계정 중 최댓값) — 목걸이 색과 땀방울: `unknown` · `calm`(<50%) · `normal`(<80%) · `warn`(<100%) · `limit`.
+
+직접 만든 팩은 `~/Library/Application Support/ai-usage-widget/characters/<팩 이름>/<상태>.(gif|webp|apng|png|svg)` 에 넣고 메뉴 → 캐릭터에서 고른다.
+`busy`·`idle` 이미지를 먼저 찾고, 없으면 사용률 단계 이미지(작업 중이면 통통 튄다), 그것도 없으면 기본 고양이로 대신 그린다.
 
 ## 구조
 

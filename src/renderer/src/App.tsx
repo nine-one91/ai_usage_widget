@@ -73,6 +73,8 @@ export function App() {
         {expanded && <UsageCard snapshots={state.snapshots} onRefresh={() => window.widget.refresh()} />}
         <Character
           level={state.level}
+          busy={state.busy}
+          size={state.characterSize}
           pack={state.characterPack}
           dragging={dragging}
           onPointerDown={onPointerDown}
